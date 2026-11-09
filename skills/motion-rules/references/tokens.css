@@ -1,0 +1,90 @@
+/* Motion tokens and base keyframes for a new project (taken from jahanicoaching.ir, generalised).
+   Rename the component selectors to your own; keep the numbers. */
+:root {
+  --dur-1: 120ms;           /* press */
+  --dur-2: 220ms;           /* hover, state change */
+  --dur-3: 420ms;           /* page, drawer */
+  --dur-pop: 200ms;         /* dialogs, toasts in */
+  --dur-pop-out: 160ms;     /* ... out (20% shorter) */
+  --dur-sheet: 260ms;       /* bottom sheets in */
+  --ease-out: cubic-bezier(.22,1,.36,1);
+  --ease-in-out: cubic-bezier(.65,0,.35,1);
+  --ease-in: cubic-bezier(.4,0,1,1);
+
+  /* transitions.dev recipes */
+  --tabs-dur: 250ms; --tabs-ease: cubic-bezier(.22,1,.36,1);
+  --digit-dur: 500ms; --digit-distance: 8px; --digit-stagger: 70ms; --digit-blur: 2px; --digit-ease: cubic-bezier(.34,1.45,.64,1);
+  --reel-dur: 1400ms; --reel-cell: 1.25em; --reel-spin-blur: 3px; --reel-ease: cubic-bezier(.16,1,.3,1);
+  --shake-distance: 6px; --shake-overshoot: 4px; --shake-ease: cubic-bezier(.22,1,.36,1);
+  --clear-out-dur: 400ms; --clear-in-dur: 400ms; --clear-fly: 12px; --clear-blur: 2px;
+  --reveal-dur: 400ms; --reveal-blur: 2px;
+  --stagger-dur: 500ms; --stagger-distance: 12px; --stagger-step: 40ms; --stagger-blur: 3px;
+  --tt-in-dur: 150ms; --tt-out-dur: 50ms; --tt-scale: .98;
+  --dropdown-open-dur: 250ms; --dropdown-close-dur: 150ms; --dropdown-pre-scale: .97; --dropdown-ease: cubic-bezier(.22,1,.36,1);
+  --acc-dur: 250ms; --acc-ease: cubic-bezier(.22,1,.36,1);
+  --check-box: 150ms; --check-draw: 350ms; --check-ease: cubic-bezier(.22,1,.36,1);
+  --toggle-dur: 350ms; --toggle-ease: cubic-bezier(.34,1.35,.64,1);
+  interpolate-size: allow-keywords;
+}
+
+@keyframes pop-in   { from { opacity: 0; transform: scale(.95) } }
+@keyframes pop-out  { to   { opacity: 0; transform: scale(.95) } }
+@keyframes fade-in  { from { opacity: 0 } }
+@keyframes fade-out { to   { opacity: 0 } }
+@keyframes sheet-up   { from { transform: translateY(100%) } }
+@keyframes sheet-down { to   { transform: translateY(100%) } }
+@keyframes view-in  { from { opacity: 0; transform: translateY(8px) } }
+@keyframes ok-pulse { 50% { transform: scale(1.18) } }
+@keyframes mask-reveal { from { clip-path: inset(0 0 100% 0) } to { clip-path: inset(0 0 0 0) } }
+@keyframes t-shake { 0%{transform:none} 28.57%{transform:translateX(calc(var(--shake-distance) * -1))} 57.14%{transform:translateX(var(--shake-distance))} 78.57%{transform:translateX(calc(var(--shake-overshoot) * -1))} 100%{transform:none} }
+@keyframes t-reveal { from { opacity: 0; filter: blur(var(--reveal-blur)) } }
+@keyframes t-stagger { from { opacity: 0; transform: translateY(var(--stagger-distance)); filter: blur(var(--stagger-blur)) } }
+@keyframes t-dropdown-in { from { opacity: 0; transform: scale(var(--dropdown-pre-scale)) } }
+@keyframes t-digit-pop-in { 0% { transform: translateY(var(--digit-distance)); opacity: 0; filter: blur(var(--digit-blur)) } 100% { transform: none; opacity: 1; filter: none } }
+
+/* dialogs and sheets: in with ease-out from the trigger, out with ease-in, shorter */
+.modal { transform-origin: var(--origin, 50% 50%); animation: pop-in var(--dur-pop) var(--ease-out) both }
+.sheet { animation: sheet-up var(--dur-sheet) var(--ease-out) both }
+.is-leaving .modal { animation: pop-out var(--dur-pop-out) var(--ease-in) both }
+.is-leaving .sheet { animation: sheet-down calc(var(--dur-sheet) * .8) var(--ease-in) both }
+
+/* list rows 30 ms apart (set --i per row, capped), details settle after them */
+.list-row { animation: view-in var(--dur-3) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 30ms) }
+.metric   { animation: view-in var(--dur-3) var(--ease-out) both; animation-delay: calc(120ms + var(--i, 0) * 30ms) }
+
+/* press: give to 0.97 at once, ease back on release */
+.pressable { transition: transform var(--dur-2) var(--ease-out) }
+.pressable:active { transform: scale(.97); transition-duration: 0ms }
+
+/* menus: open from their corner */
+.menu { transform-origin: top left; animation: t-dropdown-in var(--dropdown-open-dur) var(--dropdown-ease) both }
+
+/* accordion */
+details::details-content { block-size: 0; overflow: clip; transition: block-size var(--acc-dur) var(--acc-ease), content-visibility var(--acc-dur) allow-discrete }
+details[open]::details-content { block-size: auto }
+
+/* skeleton reveal: backwards, so no filter is left on the box afterwards */
+.t-reveal { animation: t-reveal var(--reveal-dur) ease-in-out backwards }
+.t-shake { animation: t-shake 280ms var(--shake-ease) }
+
+/* digits stay one left-to-right piece inside right-to-left text */
+.num { direction: ltr; unicode-bidi: isolate; display: inline-block }
+
+/* between pages (View Transitions API) */
+::view-transition-old(root) { animation: fade-out 160ms var(--ease-in) both }
+::view-transition-new(root) { animation: fade-in 220ms var(--ease-out) both }
+::view-transition-group(*) { animation-duration: 220ms; animation-timing-function: var(--ease-in-out) }
+.nav-item[aria-current="page"] { view-transition-name: nav-current }
+.page-title { view-transition-name: page-title }
+
+/* the loader the owner chose for media waits */
+.loader { height: 80px; aspect-ratio: 1; box-sizing: border-box; position: relative;
+  mask: radial-gradient(#0000 47%, #000 48% 71%, #0000 72%) exclude, conic-gradient(#000 0 0) no-clip;
+  animation: l11 1.5s linear infinite }
+.loader::before { content: ""; position: absolute; inset: 0 35% 70%; border-radius: 50%; background: #000; filter: blur(15px) }
+@keyframes l11 { to { rotate: 1turn } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important }
+}
